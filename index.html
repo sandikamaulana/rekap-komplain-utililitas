@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rekap Komplain Utililitas - Online</title>
-    <!-- Tailwind CSS untuk Desain -->
+    <title>Dashboard Rekap Komplain Utililitas</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- SheetJS untuk Ekspor Excel -->
+    <!-- SheetJS untuk Ekspor & Impor Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- FontAwesome untuk Ikon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -64,8 +64,8 @@
                     <i class="fa-solid fa-clipboard-list"></i>
                 </div>
                 <div>
-                    <h2 class="font-bold text-slate-800 text-base leading-tight">Rekapitulasi Komplain</h2>
-                    <p class="text-xs text-slate-500">Sinkronisasi Google Sheets</p>
+                    <h2 class="font-bold text-slate-800 text-base leading-tight">Dashboard Komplain Utililitas</h2>
+                    <p class="text-xs text-slate-500">Sinkronisasi Realtime Google Sheets</p>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -82,6 +82,46 @@
         <!-- Main Content -->
         <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
             
+            <!-- DASHBOARD PEMANTAU KOMPLAIN (STATISTIK) -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center gap-4">
+                    <div class="bg-blue-50 text-blue-600 w-12 h-12 rounded-lg flex items-center justify-center text-lg font-bold">
+                        <i class="fa-solid fa-layer-group"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 font-medium">Total Komplain</p>
+                        <h3 id="stat-total" class="text-xl font-bold text-slate-800">0</h3>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center gap-4">
+                    <div class="bg-amber-50 text-amber-600 w-12 h-12 rounded-lg flex items-center justify-center text-lg font-bold">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 font-medium">Open / Survey</p>
+                        <h3 id="stat-open" class="text-xl font-bold text-amber-600">0</h3>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center gap-4">
+                    <div class="bg-purple-50 text-purple-600 w-12 h-12 rounded-lg flex items-center justify-center text-lg font-bold">
+                        <i class="fa-solid fa-spinner"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 font-medium">In Progress</p>
+                        <h3 id="stat-progress" class="text-xl font-bold text-purple-600">0</h3>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center gap-4">
+                    <div class="bg-emerald-50 text-emerald-600 w-12 h-12 rounded-lg flex items-center justify-center text-lg font-bold">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 font-medium">Closed Selesai</p>
+                        <h3 id="stat-closed" class="text-xl font-bold text-emerald-600">0</h3>
+                    </div>
+                </div>
+            </div>
+
             <!-- Aksi & Kontrol Bar -->
             <div class="bg-white p-4 rounded-xl shadow-xs border border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
                 <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
@@ -89,13 +129,22 @@
                     <button id="btn-add" onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-medium transition flex items-center gap-2 shadow-xs">
                         <i class="fa-solid fa-plus"></i> Tambah Data
                     </button>
+                    <!-- Tombol Impor Excel (Super Admin & Inputer) -->
+                    <label id="btn-import-wrapper" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-medium transition cursor-pointer flex items-center gap-2 shadow-xs">
+                        <i class="fa-solid fa-file-excel"></i> Impor Excel
+                        <input type="file" id="import-file" accept=".xlsx, .xls" class="hidden" onchange="importExcel(event)">
+                    </label>
                     <!-- Tombol Ekspor Excel -->
-                    <button onclick="exportExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-medium transition flex items-center gap-2 shadow-xs">
+                    <button onclick="exportExcel()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-xs font-medium transition flex items-center gap-2 shadow-xs">
                         <i class="fa-solid fa-download"></i> Ekspor Excel
+                    </button>
+                    <!-- Tombol Cetak / Print -->
+                    <button onclick="window.print()" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg text-xs font-medium transition flex items-center gap-2 shadow-xs">
+                        <i class="fa-solid fa-print"></i> Cetak / PDF
                     </button>
                     <!-- Tombol Refresh Sinkronisasi -->
                     <button onclick="loadDataFromGSheet()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg text-xs font-medium transition flex items-center gap-2">
-                        <i class="fa-solid fa-rotate" id="refresh-icon"></i> Refresh Data
+                        <i class="fa-solid fa-rotate" id="refresh-icon"></i> Sinkron
                     </button>
                 </div>
 
@@ -105,7 +154,7 @@
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
                             <i class="fa-solid fa-magnifying-glass text-xs"></i>
                         </span>
-                        <input type="text" id="search-input" onkeyup="filterTable()" placeholder="Cari tiket, alamat..." class="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs">
+                        <input type="text" id="search-input" onkeyup="filterTable()" placeholder="Cari tiket, alamat, pelapor..." class="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs">
                     </div>
                 </div>
             </div>
@@ -120,19 +169,20 @@
                                 <th class="p-3 whitespace-nowrap">Tgl WO</th>
                                 <th class="p-3 whitespace-nowrap">Tiket Permasalahan</th>
                                 <th class="p-3 min-w-[150px]">Alamat</th>
-                                <th class="p-3 whitespace-nowrap">CP Pelapor</th>
+                                <th class="p-3 whitespace-nowrap">CP</th>
+                                <th class="p-3 whitespace-nowrap">Pelapor</th>
                                 <th class="p-3">RAB</th>
                                 <th class="p-3">HSA</th>
                                 <th class="p-3 whitespace-nowrap">ID Tele HSA</th>
                                 <th class="p-3 whitespace-nowrap">ID IHLD</th>
                                 <th class="p-3 whitespace-nowrap">Deadline Survey</th>
                                 <th class="p-3">Progress</th>
-                                <th class="p-3 text-center">Aksi</th>
+                                <th class="p-3 text-center action-col">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="table-body" class="divide-y divide-slate-100 text-slate-700">
                             <tr>
-                                <td colspan="12" class="text-center py-6 text-slate-400">Memuat data dari Google Sheets...</td>
+                                <td colspan="13" class="text-center py-6 text-slate-400">Memuat data dari Google Sheets...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -165,8 +215,12 @@
                     <textarea id="ALAMAT" rows="2" required class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
                 </div>
                 <div>
-                    <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">CP Pelapor</label>
-                    <input type="text" id="CP_PELAPOR" required class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">CP (No Kontak)</label>
+                    <input type="text" id="CP" required class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Pelapor</label>
+                    <input type="text" id="PELAPOR" required class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
                 </div>
                 <div>
                     <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">RAB</label>
@@ -206,7 +260,7 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIKA APLIKASI -->
+    <!-- JAVASCRIPT APLIKASI -->
     <script>
         let currentUser = null;
         let tableData = [];
@@ -259,10 +313,14 @@
             document.getElementById('role-display').innerText = `Role: ${currentUser.role.toUpperCase()}`;
 
             const btnAdd = document.getElementById('btn-add');
+            const btnImport = document.getElementById('btn-import-wrapper');
+
             if (currentUser.role === 'viewer') {
                 btnAdd.classList.add('hidden');
+                btnImport.classList.add('hidden');
             } else {
                 btnAdd.classList.remove('hidden');
+                btnImport.classList.remove('hidden');
             }
 
             loadDataFromGSheet();
@@ -284,6 +342,7 @@
                     if (res.status === "success") {
                         tableData = res.data;
                         renderTable();
+                        updateDashboardStats();
                     } else {
                         alert("Gagal memuat data: " + res.message);
                     }
@@ -294,12 +353,24 @@
                 });
         }
 
+        function updateDashboardStats() {
+            const total = tableData.length;
+            const openCount = tableData.filter(d => d.PROGRESS === 'OPEN' || d.PROGRESS === 'SURVEY').length;
+            const progressCount = tableData.filter(d => d.PROGRESS === 'IN PROGRESS' || d.PROGRESS === 'PENDING MATERIAL').length;
+            const closedCount = tableData.filter(d => d.PROGRESS === 'CLOSED').length;
+
+            document.getElementById('stat-total').innerText = total;
+            document.getElementById('stat-open').innerText = openCount;
+            document.getElementById('stat-progress').innerText = progressCount;
+            document.getElementById('stat-closed').innerText = closedCount;
+        }
+
         function renderTable(dataToRender = tableData) {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = "";
 
             if (dataToRender.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="12" class="text-center py-6 text-slate-400">Tidak ada data ditemukan.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="13" class="text-center py-6 text-slate-400">Tidak ada data ditemukan.</td></tr>`;
                 return;
             }
 
@@ -332,14 +403,15 @@
                     <td class="p-3 whitespace-nowrap">${formattedTglWO}</td>
                     <td class="p-3 font-semibold text-slate-900">${item.TIKET_PERMASALAHAN || ''}</td>
                     <td class="p-3 text-xs leading-relaxed max-w-[200px] truncate" title="${item.ALAMAT || ''}">${item.ALAMAT || ''}</td>
-                    <td class="p-3">${item.CP_PELAPOR || ''}</td>
-                    <td class="p-3 font-medium text-slate-800">${item.RAB || ''}</td>
+                    <td class="p-3">${item.CP || ''}</td>
+                    <td class="p-3 font-medium text-slate-800">${item.PELAPOR || ''}</td>
+                    <td class="p-3 font-medium text-blue-700">${item.RAB || ''}</td>
                     <td class="p-3">${item.HSA || ''}</td>
                     <td class="p-3">${item.ID_TELE_HSA || ''}</td>
                     <td class="p-3">${item.ID_IHLD || ''}</td>
                     <td class="p-3 whitespace-nowrap">${formattedSurvey}</td>
                     <td class="p-3"><span class="px-2 py-1 rounded-md text-[10px] font-bold whitespace-nowrap ${badgeColor}">${item.PROGRESS || 'OPEN'}</span></td>
-                    <td class="p-3 text-center align-middle">${actionButtons}</td>
+                    <td class="p-3 text-center align-middle action-col">${actionButtons}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -379,7 +451,8 @@
             document.getElementById('TGL_WO').value = formatDateForInput(item.TGL_WO);
             document.getElementById('TIKET_PERMASALAHAN').value = item.TIKET_PERMASALAHAN || '';
             document.getElementById('ALAMAT').value = item.ALAMAT || '';
-            document.getElementById('CP_PELAPOR').value = item.CP_PELAPOR || '';
+            document.getElementById('CP').value = item.CP || '';
+            document.getElementById('PELAPOR').value = item.PELAPOR || '';
             document.getElementById('RAB').value = item.RAB || '';
             document.getElementById('HSA').value = item.HSA || '';
             document.getElementById('ID_TELE_HSA').value = item.ID_TELE_HSA || '';
@@ -400,7 +473,8 @@
                 TGL_WO: document.getElementById('TGL_WO').value,
                 TIKET_PERMASALAHAN: document.getElementById('TIKET_PERMASALAHAN').value,
                 ALAMAT: document.getElementById('ALAMAT').value,
-                CP_PELAPOR: document.getElementById('CP_PELAPOR').value,
+                CP: document.getElementById('CP').value,
+                PELAPOR: document.getElementById('PELAPOR').value,
                 RAB: document.getElementById('RAB').value,
                 HSA: document.getElementById('HSA').value,
                 ID_TELE_HSA: document.getElementById('ID_TELE_HSA').value,
@@ -448,6 +522,38 @@
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Rekap");
             XLSX.writeFile(workbook, "Rekap_Komplain_Utililitas.xlsx");
+        }
+
+        // FITUR IMPOR EXCEL
+        function importExcel(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(firstSheet);
+                
+                if (rows.length === 0) {
+                    alert("File Excel kosong atau format tidak sesuai.");
+                    return;
+                }
+
+                if (!confirm(`Ditemukan ${rows.length} baris data. Lanjutkan proses impor ke Google Sheets?`)) return;
+
+                fetch(WEB_APP_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "importData", rows: rows })
+                }).then(() => {
+                    alert("Proses impor data dikirim ke Google Sheets!");
+                    setTimeout(loadDataFromGSheet, 2000);
+                }).catch(err => alert("Gagal mengimpor file."));
+            };
+            reader.readAsArrayBuffer(file);
         }
     </script>
 </body>
