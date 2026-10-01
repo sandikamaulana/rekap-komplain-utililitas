@@ -85,16 +85,16 @@
             <!-- Aksi & Kontrol Bar -->
             <div class="bg-white p-4 rounded-xl shadow-xs border border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
                 <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
-                    <!-- Tombol Tambah Data (Super Admin & Inputer) -->
+                    <!-- Tombol Tambah Data -->
                     <button id="btn-add" onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-medium transition flex items-center gap-2 shadow-xs">
                         <i class="fa-solid fa-plus"></i> Tambah Data
                     </button>
-                    <!-- Tombol Import (Super Admin Saja) -->
+                    <!-- Tombol Import Excel -->
                     <label id="btn-import-wrapper" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-medium transition cursor-pointer flex items-center gap-2 shadow-xs hidden">
                         <i class="fa-solid fa-file-excel"></i> Impor Excel
                         <input type="file" id="import-file" accept=".xlsx, .xls" class="hidden" onchange="importExcel(event)">
                     </label>
-                    <!-- Tombol Ekspor (Semua Role) -->
+                    <!-- Tombol Ekspor Excel -->
                     <button onclick="exportExcel()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-xs font-medium transition flex items-center gap-2 shadow-xs">
                         <i class="fa-solid fa-download"></i> Ekspor Excel
                     </button>
@@ -154,7 +154,7 @@
                 <button onclick="closeModal()" class="text-slate-400 hover:text-white text-base"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form id="data-form" onsubmit="saveData(event)" class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[75vh] overflow-y-auto">
-                <input type="hidden" id="edit-index">
+                <input type="hidden" id="edit-row-id">
                 <div>
                     <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Tgl WO</label>
                     <input type="date" id="TGL_WO" required class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
@@ -214,7 +214,6 @@
         let currentUser = null;
         let tableData = [];
 
-        // Sistem Login
         const users = {
             superadmin: { pass: 'admin123', name: 'Super Admin', role: 'superadmin' },
             inputer: { pass: 'input123', name: 'Petugas Input', role: 'inputer' },
@@ -255,7 +254,6 @@
             document.getElementById('user-display').innerText = currentUser.name;
             document.getElementById('role-display').innerText = `Role: ${currentUser.role.toUpperCase()}`;
 
-            // Atur Hak Akses Berdasarkan Role
             const btnAdd = document.getElementById('btn-add');
             const btnImport = document.getElementById('btn-import-wrapper');
 
@@ -264,7 +262,7 @@
                 btnImport.classList.add('hidden');
             } else if (currentUser.role === 'inputer') {
                 btnAdd.classList.remove('hidden');
-                btnImport.classList.add('hidden'); // Inputer tidak bisa impor excel
+                btnImport.classList.add('hidden');
             } else if (currentUser.role === 'superadmin') {
                 btnAdd.classList.remove('hidden');
                 btnImport.classList.remove('hidden');
@@ -273,10 +271,9 @@
             loadDataFromGSheet();
         }
 
-        // Ambil Data dari Google Sheets
         function loadDataFromGSheet() {
             if (WEB_APP_URL.includes("MASUKKAN_URL")) {
-                alert("Harap masukkan URL Web App Google Script pada variabel WEB_APP_URL di baris kode teratas!");
+                alert("Harap masukkan URL Web App Google Script pada variabel WEB_APP_URL!");
                 return;
             }
 
@@ -296,12 +293,10 @@
                 })
                 .catch(err => {
                     icon.classList.remove('fa-spin');
-                    console.get(err);
                     alert("Terjadi kesalahan koneksi ke Google Sheets.");
                 });
         }
 
-        // Render Tabel
         function renderTable(dataToRender = tableData) {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = "";
@@ -323,8 +318,8 @@
                 if (currentUser.role === 'superadmin' || currentUser.role === 'inputer') {
                     actionButtons = `
                         <div class="flex justify-center gap-1.5">
-                            <button onclick="editData(${index})" class="bg-blue-50 text-blue-600 hover:bg-blue-100 p-1.5 rounded transition" title="Edit"><i class="fa-solid fa-pen"></i></button>
-                            ${currentUser.role === 'superadmin' ? `<button onclick="deleteData(${item.rowId})" class="bg-rose-50 text-rose-600 hover:bg-rose-100 p-1.5 rounded transition" title="Hapus"><i class="fa-solid fa-trash"></i></button>` : ''}
+                            <button onclick="editData('${item.rowId}')" class="bg-blue-50 text-blue-600 hover:bg-blue-100 p-1.5 rounded transition" title="Edit"><i class="fa-solid fa-pen"></i></button>
+                            ${currentUser.role === 'superadmin' ? `<button onclick="deleteData('${item.rowId}')" class="bg-rose-50 text-rose-600 hover:bg-rose-100 p-1.5 rounded transition" title="Hapus"><i class="fa-solid fa-trash"></i></button>` : ''}
                         </div>
                     `;
                 }
@@ -349,7 +344,6 @@
             });
         }
 
-        // Filter Pencarian
         function filterTable() {
             const keyword = document.getElementById('search-input').value.toLowerCase();
             const filtered = tableData.filter(item => {
@@ -360,23 +354,47 @@
             renderTable(filtered);
         }
 
-        // Modal Control
         function openModal() {
             document.getElementById('data-modal').classList.remove('hidden');
             document.getElementById('modal-title').innerText = "Tambah Komplain Baru";
             document.getElementById('data-form').reset();
-            document.getElementById('edit-index').value = "";
+            document.getElementById('edit-row-id').value = "";
         }
 
         function closeModal() {
             document.getElementById('data-modal').classList.add('hidden');
         }
 
-        // Simpan Data (Tambah)
+        // Fungsi Edit Data (Memasukkan data ke modal berdasarkan rowId)
+        function editData(rowId) {
+            const item = tableData.find(d => String(d.rowId) === String(rowId));
+            if (!item) return;
+
+            document.getElementById('data-modal').classList.remove('hidden');
+            document.getElementById('modal-title').innerText = "Edit Data Komplain";
+            
+            document.getElementById('edit-row-id').value = item.rowId;
+            document.getElementById('TGL_WO').value = item.TGL_WO || '';
+            document.getElementById('TIKET_PERMASALAHAN').value = item.TIKET_PERMASALAHAN || '';
+            document.getElementById('ALAMAT').value = item.ALAMAT || '';
+            document.getElementById('CP_PELAPOR').value = item.CP_PELAPOR || '';
+            document.getElementById('RAB').value = item.RAB || '';
+            document.getElementById('HSA').value = item.HSA || '';
+            document.getElementById('ID_TELE_HSA').value = item.ID_TELE_HSA || '';
+            document.getElementById('ID_IHLD').value = item.ID_IHLD || '';
+            document.getElementById('DEADLINE_SURVEY').value = item.DEADLINE_SURVEY || '';
+            document.getElementById('PROGRESS').value = item.PROGRESS || 'OPEN';
+        }
+
+        // Simpan Data (Tambah atau Update)
         function saveData(e) {
             e.preventDefault();
+            const rowId = document.getElementById('edit-row-id').value;
+            const actionType = rowId ? "updateData" : "addData";
+
             const payload = {
-                action: "addData",
+                action: actionType,
+                rowId: rowId,
                 TGL_WO: document.getElementById('TGL_WO').value,
                 TIKET_PERMASALAHAN: document.getElementById('TIKET_PERMASALAHAN').value,
                 ALAMAT: document.getElementById('ALAMAT').value,
@@ -395,15 +413,15 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             }).then(() => {
-                alert("Data berhasil dikirim ke Google Sheets!");
+                alert(rowId ? "Data berhasil diperbarui!" : "Data berhasil ditambahkan!");
                 closeModal();
-                setTimeout(loadDataFromGSheet, 1000); // Beri jeda 1 detik untuk sinkronisasi
+                setTimeout(loadDataFromGSheet, 1500);
             }).catch(err => {
                 alert("Gagal menyimpan data.");
             });
         }
 
-        // Hapus Data (Super Admin)
+        // Hapus Data
         function deleteData(rowId) {
             if (!confirm("Apakah Anda yakin ingin menghapus data ini?")) return;
 
@@ -414,16 +432,10 @@
                 body: JSON.stringify({ action: "deleteData", rowId: rowId })
             }).then(() => {
                 alert("Perintah hapus dikirim!");
-                setTimeout(loadDataFromGSheet, 1000);
+                setTimeout(loadDataFromGSheet, 1500);
             });
         }
 
-        // Edit Data (Placeholder sederhana)
-        function editData(index) {
-            alert("Fitur edit langsung dapat dihubungkan ke baris sheet menggunakan rowId.");
-        }
-
-        // Ekspor Excel
         function exportExcel() {
             const worksheet = XLSX.utils.json_to_sheet(tableData);
             const workbook = XLSX.utils.book_new();
@@ -431,7 +443,6 @@
             XLSX.writeFile(workbook, "Rekap_Komplain_Utililitas.xlsx");
         }
 
-        // Impor Excel (Super Admin)
         function importExcel(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -443,7 +454,7 @@
                 const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                 const rows = XLSX.utils.sheet_to_json(firstSheet);
                 
-                alert(`Berhasil membaca ${rows.length} baris dari Excel. Silakan sesuaikan fungsi batch upload jika ingin mengirim sekaligus ke GSheet.`);
+                alert(`Berhasil membaca ${rows.length} baris dari Excel.`);
             };
             reader.readAsArrayBuffer(file);
         }
