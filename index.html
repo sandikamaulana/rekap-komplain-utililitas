@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekap Komplain Utililitas - Online</title>
+    <!-- Tailwind CSS untuk Desain -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- SheetJS untuk Ekspor & Impor Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- FontAwesome untuk Ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+
+    <!-- KONFIGURASI WEB APP URL GOOGLE SCRIPT -->
+    <script>
+        // MASUKKAN URL WEB APP GOOGLE SCRIPT ANDA DI ANTARA TANDA KUTIP DI BAWAH INI:
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz_11aSgw2PJf-ECvn2eo9_Q1nFBPmmg7yKb4EkXJ5AiEHoHlhtbF1v-mCh-PdzEI9TsA/exec";
+    </script>
+
+    <!-- HALAMAN LOGIN -->
+    <div id="login-page" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
+            <div class="text-center mb-6">
+                <div class="bg-blue-600 text-white w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl shadow-md">
+                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-900">Rekap Komplain Utililitas</h1>
+                <p class="text-sm text-slate-500">Silakan login sesuai hak akses Anda</p>
+            </div>
+
+            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Username</label>
+                    <input type="text" id="username" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Password</label>
+                    <input type="password" id="password" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition shadow-sm text-sm">
+                    Masuk Aplikasi
+                </button>
+            </form>
+
+            <div class="mt-6 pt-6 border-t border-slate-100 text-center">
+                <p class="text-xs text-slate-400 mb-3">Demo Tombol Cepat Akses:</p>
+                <div class="flex flex-wrap gap-2 justify-center">
+                    <button onclick="quickLogin('superadmin', 'admin123')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs px-3 py-1.5 rounded font-medium transition">Super Admin</button>
+                    <button onclick="quickLogin('inputer', 'input123')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs px-3 py-1.5 rounded font-medium transition">Inputer</button>
+                    <button onclick="quickLogin('viewer', 'view123')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs px-3 py-1.5 rounded font-medium transition">Viewer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HALAMAN UTAMA APLIKASI (DASHBOARD) -->
+    <div id="app-page" class="hidden min-h-screen flex flex-col">
+        <!-- Navbar -->
+        <header class="bg-white border-b border-slate-200 sticky top-0 z-30 px-6 py-4 flex justify-between items-center shadow-xs">
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-600 text-white w-9 h-9 rounded-lg flex items-center justify-center font-bold">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                </div>
+                <div>
+                    <h2 class="font-bold text-slate-800 text-base leading-tight">Rekapitulasi Komplain Utililitas</h2>
+                    <p class="text-xs text-slate-500">Sinkronisasi Google Sheets</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="text-right hidden sm:block">
+                    <span id="user-display" class="block text-xs font-bold text-slate-700 uppercase">Role</span>
+                    <span id="role-display" class="block text-[10px] text-blue-600 font-semibold">Status</span>
+                </div>
+                <button onclick="handleLogout()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-2 rounded-lg text-xs font-medium transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-right-from-bracket"></i> Keluar
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
+            
+            <!-- Aksi & Kontrol Bar -->
+            <div class="bg-white p-4 rounded-xl shadow-xs border border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                    <!-- Tombol Tambah Data (Super Admin & Inputer) -->
+                    <button id="btn-add" onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-medium transition flex items-center gap-2 shadow-xs">
+                        <i class="fa-solid fa-plus"></i> Tambah Data
+                    </button>
+                    <!-- Tombol Import (Super Admin Saja) -->
+                    <label id="btn-import-wrapper" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-medium transition cursor-pointer flex items-center gap-2 shadow-xs hidden">
+                        <i class="fa-solid fa-file-excel"></i> Impor Excel
+                        <input type="file" id="import-file" accept=".xlsx, .xls" class="hidden" onchange="importExcel(event)">
+                    </label>
+                    <!-- Tombol Ekspor (Semua Role) -->
+                    <button onclick="exportExcel()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-xs font-medium transition flex items-center gap-2 shadow-xs">
+                        <i class="fa-solid fa-download"></i> Ekspor Excel
+                    </button>
+                    <!-- Tombol Refresh Sinkronisasi -->
+                    <button onclick="loadDataFromGSheet()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg text-xs font-medium transition flex items-center gap-2">
+                        <i class="fa-solid fa-rotate" id="refresh-icon"></i> Sinkron
+                    </button>
+                </div>
+
+                <!-- Kolom Pencarian -->
+                <div class="w-full md:w-72">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                        </span>
+                        <input type="text" id="search-input" onkeyup="filterTable()" placeholder="Cari tiket, alamat, pelapor..." class="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabel Data -->
+            <div class="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 uppercase font-semibold tracking-wider border-b border-slate-200">
+                                <th class="p-3">No</th>
+                                <th class="p-3">Tgl WO</th>
+                                <th class="p-3">Tiket Permasalahan</th>
+                                <th class="p-3">Alamat</th>
+                                <th class="p-3">CP Pelapor</th>
+                                <th class="p-3">RAB</th>
+                                <th class="p-3">HSA</th>
+                                <th class="p-3">ID Tele HSA</th>
+                                <th class="p-3">ID IHLD</th>
+                                <th class="p-3">Deadline Survey</th>
+                                <th class="p-3">Progress</th>
+                                <th class="p-3 text-center action-col">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body" class="divide-y divide-slate-100 text-slate-700">
+                            <tr>
+                                <td colspan="12" class="text-center py-6 text-slate-400">Memuat data dari Google Sheets...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL FORM TAMBAH / EDIT -->
+    <div id="data-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-100 animate-in">
+            <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
+                <h3 id="modal-title" class="font-bold text-sm">Tambah Komplain Baru</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white text-base"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="data-form" onsubmit="saveData(event)" class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[75vh] overflow-y-auto">
+                <input type="hidden" id="edit-index">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Tgl WO</label>
+                    <input type="date" id="TGL_WO" required class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Tiket Permasalahan</label>
+                    <input type="text" id="TIKET_PERMASALAHAN" required class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Alamat</label>
+                    <textarea id="ALAMAT" rows="2" required class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">CP Pelapor</label>
+                    <input type="text" id="CP_PELAPOR" required class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">RAB</label>
+                    <input type="text" id="RAB" required class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">HSA</label>
+                    <input type="text" id="HSA" required class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">ID Tele HSA</label>
+                    <input type="text" id="ID_TELE_HSA" required class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">ID IHLD</label>
+                    <input type="text" id="ID_IHLD" required class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Deadline Survey</label>
+                    <input type="date" id="DEADLINE_SURVEY" required class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Progress</label>
+                    <select id="PROGRESS" required class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
+                        <option value="OPEN">OPEN</option>
+                        <option value="SURVEY">SURVEY</option>
+                        <option value="IN PROGRESS">IN PROGRESS</option>
+                        <option value="PENDING MATERIAL">PENDING MATERIAL</option>
+                        <option value="CLOSED">CLOSED</option>
+                    </select>
+                </div>
+                <div class="sm:col-span-2 flex justify-end gap-2 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-xs font-medium transition">Batal</button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-xs font-medium transition shadow-xs">Simpan Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIKA APLIKASI -->
+    <script>
+        let currentUser = null;
+        let tableData = [];
+
+        // Sistem Login
+        const users = {
+            superadmin: { pass: 'admin123', name: 'Super Admin', role: 'superadmin' },
+            inputer: { pass: 'input123', name: 'Petugas Input', role: 'inputer' },
+            viewer: { pass: 'view123', name: 'Viewer / Pimpinan', role: 'viewer' }
+        };
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('username').value.trim();
+            const p = document.getElementById('password').value;
+
+            if (users[u] && users[u].pass === p) {
+                currentUser = users[u];
+                initApp();
+            } else {
+                alert('Username atau Password salah!');
+            }
+        }
+
+        function quickLogin(user, pass) {
+            document.getElementById('username').value = user;
+            document.getElementById('password').value = pass;
+            currentUser = users[user];
+            initApp();
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            document.getElementById('login-page').classList.remove('hidden');
+            document.getElementById('app-page').classList.add('hidden');
+            document.getElementById('login-form').reset();
+        }
+
+        function initApp() {
+            document.getElementById('login-page').classList.add('hidden');
+            document.getElementById('app-page').classList.remove('hidden');
+            
+            document.getElementById('user-display').innerText = currentUser.name;
+            document.getElementById('role-display').innerText = `Role: ${currentUser.role.toUpperCase()}`;
+
+            // Atur Hak Akses Berdasarkan Role
+            const btnAdd = document.getElementById('btn-add');
+            const btnImport = document.getElementById('btn-import-wrapper');
+
+            if (currentUser.role === 'viewer') {
+                btnAdd.classList.add('hidden');
+                btnImport.classList.add('hidden');
+            } else if (currentUser.role === 'inputer') {
+                btnAdd.classList.remove('hidden');
+                btnImport.classList.add('hidden'); // Inputer tidak bisa impor excel
+            } else if (currentUser.role === 'superadmin') {
+                btnAdd.classList.remove('hidden');
+                btnImport.classList.remove('hidden');
+            }
+
+            loadDataFromGSheet();
+        }
+
+        // Ambil Data dari Google Sheets
+        function loadDataFromGSheet() {
+            if (WEB_APP_URL.includes("MASUKKAN_URL")) {
+                alert("Harap masukkan URL Web App Google Script pada variabel WEB_APP_URL di baris kode teratas!");
+                return;
+            }
+
+            const icon = document.getElementById('refresh-icon');
+            icon.classList.add('fa-spin');
+
+            fetch(WEB_APP_URL + "?action=getData")
+                .then(res => res.json())
+                .then(res => {
+                    icon.classList.remove('fa-spin');
+                    if (res.status === "success") {
+                        tableData = res.data;
+                        renderTable();
+                    } else {
+                        alert("Gagal memuat data: " + res.message);
+                    }
+                })
+                .catch(err => {
+                    icon.classList.remove('fa-spin');
+                    console.get(err);
+                    alert("Terjadi kesalahan koneksi ke Google Sheets.");
+                });
+        }
+
+        // Render Tabel
+        function renderTable(dataToRender = tableData) {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = "";
+
+            if (dataToRender.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="12" class="text-center py-6 text-slate-400">Tidak ada data ditemukan.</td></tr>`;
+                return;
+            }
+
+            dataToRender.forEach((item, index) => {
+                let badgeColor = "bg-slate-100 text-slate-700";
+                if (item.PROGRESS === "OPEN") badgeColor = "bg-amber-100 text-amber-800";
+                else if (item.PROGRESS === "SURVEY") badgeColor = "bg-blue-100 text-blue-800";
+                else if (item.PROGRESS === "IN PROGRESS") badgeColor = "bg-purple-100 text-purple-800";
+                else if (item.PROGRESS === "PENDING MATERIAL") badgeColor = "bg-orange-100 text-orange-800";
+                else if (item.PROGRESS === "CLOSED") badgeColor = "bg-emerald-100 text-emerald-800";
+
+                let actionButtons = `-`;
+                if (currentUser.role === 'superadmin' || currentUser.role === 'inputer') {
+                    actionButtons = `
+                        <div class="flex justify-center gap-1.5">
+                            <button onclick="editData(${index})" class="bg-blue-50 text-blue-600 hover:bg-blue-100 p-1.5 rounded transition" title="Edit"><i class="fa-solid fa-pen"></i></button>
+                            ${currentUser.role === 'superadmin' ? `<button onclick="deleteData(${item.rowId})" class="bg-rose-50 text-rose-600 hover:bg-rose-100 p-1.5 rounded transition" title="Hapus"><i class="fa-solid fa-trash"></i></button>` : ''}
+                        </div>
+                    `;
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="p-3 text-slate-500">${index + 1}</td>
+                    <td class="p-3">${item.TGL_WO || ''}</td>
+                    <td class="p-3 font-semibold text-slate-900">${item.TIKET_PERMASALAHAN || ''}</td>
+                    <td class="p-3 max-w-xs truncate">${item.ALAMAT || ''}</td>
+                    <td class="p-3">${item.CP_PELAPOR || ''}</td>
+                    <td class="p-3">${item.RAB || ''}</td>
+                    <td class="p-3">${item.HSA || ''}</td>
+                    <td class="p-3">${item.ID_TELE_HSA || ''}</td>
+                    <td class="p-3">${item.ID_IHLD || ''}</td>
+                    <td class="p-3">${item.DEADLINE_SURVEY || ''}</td>
+                    <td class="p-3"><span class="px-2 py-1 rounded-md text-[10px] font-bold ${badgeColor}">${item.PROGRESS || 'OPEN'}</span></td>
+                    <td class="p-3 text-center">${actionButtons}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Filter Pencarian
+        function filterTable() {
+            const keyword = document.getElementById('search-input').value.toLowerCase();
+            const filtered = tableData.filter(item => {
+                return Object.values(item).some(val => 
+                    String(val).toLowerCase().includes(keyword)
+                );
+            });
+            renderTable(filtered);
+        }
+
+        // Modal Control
+        function openModal() {
+            document.getElementById('data-modal').classList.remove('hidden');
+            document.getElementById('modal-title').innerText = "Tambah Komplain Baru";
+            document.getElementById('data-form').reset();
+            document.getElementById('edit-index').value = "";
+        }
+
+        function closeModal() {
+            document.getElementById('data-modal').classList.add('hidden');
+        }
+
+        // Simpan Data (Tambah)
+        function saveData(e) {
+            e.preventDefault();
+            const payload = {
+                action: "addData",
+                TGL_WO: document.getElementById('TGL_WO').value,
+                TIKET_PERMASALAHAN: document.getElementById('TIKET_PERMASALAHAN').value,
+                ALAMAT: document.getElementById('ALAMAT').value,
+                CP_PELAPOR: document.getElementById('CP_PELAPOR').value,
+                RAB: document.getElementById('RAB').value,
+                HSA: document.getElementById('HSA').value,
+                ID_TELE_HSA: document.getElementById('ID_TELE_HSA').value,
+                ID_IHLD: document.getElementById('ID_IHLD').value,
+                DEADLINE_SURVEY: document.getElementById('DEADLINE_SURVEY').value,
+                PROGRESS: document.getElementById('PROGRESS').value
+            };
+
+            fetch(WEB_APP_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            }).then(() => {
+                alert("Data berhasil dikirim ke Google Sheets!");
+                closeModal();
+                setTimeout(loadDataFromGSheet, 1000); // Beri jeda 1 detik untuk sinkronisasi
+            }).catch(err => {
+                alert("Gagal menyimpan data.");
+            });
+        }
+
+        // Hapus Data (Super Admin)
+        function deleteData(rowId) {
+            if (!confirm("Apakah Anda yakin ingin menghapus data ini?")) return;
+
+            fetch(WEB_APP_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "deleteData", rowId: rowId })
+            }).then(() => {
+                alert("Perintah hapus dikirim!");
+                setTimeout(loadDataFromGSheet, 1000);
+            });
+        }
+
+        // Edit Data (Placeholder sederhana)
+        function editData(index) {
+            alert("Fitur edit langsung dapat dihubungkan ke baris sheet menggunakan rowId.");
+        }
+
+        // Ekspor Excel
+        function exportExcel() {
+            const worksheet = XLSX.utils.json_to_sheet(tableData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Rekap Komplain");
+            XLSX.writeFile(workbook, "Rekap_Komplain_Utililitas.xlsx");
+        }
+
+        // Impor Excel (Super Admin)
+        function importExcel(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(firstSheet);
+                
+                alert(`Berhasil membaca ${rows.length} baris dari Excel. Silakan sesuaikan fungsi batch upload jika ingin mengirim sekaligus ke GSheet.`);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+    </script>
+</body>
+</html>
