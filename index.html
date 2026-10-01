@@ -6,7 +6,7 @@
     <title>Rekap Komplain Utililitas - Online</title>
     <!-- Tailwind CSS untuk Desain -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- SheetJS untuk Ekspor & Impor Excel -->
+    <!-- SheetJS untuk Ekspor Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- FontAwesome untuk Ikon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -26,7 +26,7 @@
                 <div class="bg-blue-600 text-white w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl shadow-md">
                     <i class="fa-solid fa-screwdriver-wrench"></i>
                 </div>
-                <h1 class="text-2xl font-bold text-slate-900">Rekap Komplain Utililitas</h1>
+                <h1 class="text-2xl font-bold text-slate-900">Rekap Komplain</h1>
                 <p class="text-sm text-slate-500">Silakan login sesuai hak akses Anda</p>
             </div>
 
@@ -64,7 +64,7 @@
                     <i class="fa-solid fa-clipboard-list"></i>
                 </div>
                 <div>
-                    <h2 class="font-bold text-slate-800 text-base leading-tight">Rekapitulasi Komplain Utililitas</h2>
+                    <h2 class="font-bold text-slate-800 text-base leading-tight">Rekapitulasi Komplain</h2>
                     <p class="text-xs text-slate-500">Sinkronisasi Google Sheets</p>
                 </div>
             </div>
@@ -89,18 +89,13 @@
                     <button id="btn-add" onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-medium transition flex items-center gap-2 shadow-xs">
                         <i class="fa-solid fa-plus"></i> Tambah Data
                     </button>
-                    <!-- Tombol Import Excel -->
-                    <label id="btn-import-wrapper" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-medium transition cursor-pointer flex items-center gap-2 shadow-xs hidden">
-                        <i class="fa-solid fa-file-excel"></i> Impor Excel
-                        <input type="file" id="import-file" accept=".xlsx, .xls" class="hidden" onchange="importExcel(event)">
-                    </label>
                     <!-- Tombol Ekspor Excel -->
-                    <button onclick="exportExcel()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-xs font-medium transition flex items-center gap-2 shadow-xs">
+                    <button onclick="exportExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-medium transition flex items-center gap-2 shadow-xs">
                         <i class="fa-solid fa-download"></i> Ekspor Excel
                     </button>
                     <!-- Tombol Refresh Sinkronisasi -->
                     <button onclick="loadDataFromGSheet()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg text-xs font-medium transition flex items-center gap-2">
-                        <i class="fa-solid fa-rotate" id="refresh-icon"></i> Sinkron
+                        <i class="fa-solid fa-rotate" id="refresh-icon"></i> Refresh Data
                     </button>
                 </div>
 
@@ -110,7 +105,7 @@
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
                             <i class="fa-solid fa-magnifying-glass text-xs"></i>
                         </span>
-                        <input type="text" id="search-input" onkeyup="filterTable()" placeholder="Cari tiket, alamat, pelapor..." class="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs">
+                        <input type="text" id="search-input" onkeyup="filterTable()" placeholder="Cari tiket, alamat..." class="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs">
                     </div>
                 </div>
             </div>
@@ -122,17 +117,17 @@
                         <thead>
                             <tr class="bg-slate-100 text-slate-600 uppercase font-semibold tracking-wider border-b border-slate-200">
                                 <th class="p-3">No</th>
-                                <th class="p-3">Tgl WO</th>
-                                <th class="p-3">Tiket Permasalahan</th>
-                                <th class="p-3">Alamat</th>
-                                <th class="p-3">CP Pelapor</th>
+                                <th class="p-3 whitespace-nowrap">Tgl WO</th>
+                                <th class="p-3 whitespace-nowrap">Tiket Permasalahan</th>
+                                <th class="p-3 min-w-[150px]">Alamat</th>
+                                <th class="p-3 whitespace-nowrap">CP Pelapor</th>
                                 <th class="p-3">RAB</th>
                                 <th class="p-3">HSA</th>
-                                <th class="p-3">ID Tele HSA</th>
-                                <th class="p-3">ID IHLD</th>
-                                <th class="p-3">Deadline Survey</th>
+                                <th class="p-3 whitespace-nowrap">ID Tele HSA</th>
+                                <th class="p-3 whitespace-nowrap">ID IHLD</th>
+                                <th class="p-3 whitespace-nowrap">Deadline Survey</th>
                                 <th class="p-3">Progress</th>
-                                <th class="p-3 text-center action-col">Aksi</th>
+                                <th class="p-3 text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="table-body" class="divide-y divide-slate-100 text-slate-700">
@@ -147,14 +142,17 @@
     </div>
 
     <!-- MODAL FORM TAMBAH / EDIT -->
-    <div id="data-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-100 animate-in">
+    <div id="data-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-100">
             <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
-                <h3 id="modal-title" class="font-bold text-sm">Tambah Komplain Baru</h3>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-white text-base"><i class="fa-solid fa-xmark"></i></button>
+                <h3 id="modal-title" class="font-bold text-sm">Form Komplain</h3>
+                <button type="button" onclick="closeModal()" class="text-slate-400 hover:text-white text-base"><i class="fa-solid fa-xmark"></i></button>
             </div>
+            
             <form id="data-form" onsubmit="saveData(event)" class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[75vh] overflow-y-auto">
+                <!-- Input ini disembunyikan, berguna untuk menyimpan ID Baris saat proses Edit -->
                 <input type="hidden" id="edit-row-id">
+                
                 <div>
                     <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Tgl WO</label>
                     <input type="date" id="TGL_WO" required class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
@@ -201,9 +199,9 @@
                         <option value="CLOSED">CLOSED</option>
                     </select>
                 </div>
-                <div class="sm:col-span-2 flex justify-end gap-2 pt-4 border-t border-slate-100">
+                <div class="sm:col-span-2 flex justify-end gap-2 pt-4 border-t border-slate-100 mt-2">
                     <button type="button" onclick="closeModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-xs font-medium transition">Batal</button>
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-xs font-medium transition shadow-xs">Simpan Data</button>
+                    <button type="submit" id="btn-submit-modal" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-xs font-medium transition shadow-xs">Simpan Data</button>
                 </div>
             </form>
         </div>
@@ -214,12 +212,22 @@
         let currentUser = null;
         let tableData = [];
 
+        // Data Akun Role
         const users = {
             superadmin: { pass: 'admin123', name: 'Super Admin', role: 'superadmin' },
             inputer: { pass: 'input123', name: 'Petugas Input', role: 'inputer' },
             viewer: { pass: 'view123', name: 'Viewer / Pimpinan', role: 'viewer' }
         };
 
+        // Format Tanggal (Mencegah error saat memuat tanggal ISO ke input YYYY-MM-DD)
+        function formatDateForInput(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            if(isNaN(d)) return dateStr.split('T')[0]; // Fallback string split
+            return d.toISOString().split('T')[0];
+        }
+
+        // FUNGSI LOGIN
         function handleLogin(e) {
             e.preventDefault();
             const u = document.getElementById('username').value.trim();
@@ -247,6 +255,7 @@
             document.getElementById('login-form').reset();
         }
 
+        // FUNGSI INISIALISASI
         function initApp() {
             document.getElementById('login-page').classList.add('hidden');
             document.getElementById('app-page').classList.remove('hidden');
@@ -255,25 +264,21 @@
             document.getElementById('role-display').innerText = `Role: ${currentUser.role.toUpperCase()}`;
 
             const btnAdd = document.getElementById('btn-add');
-            const btnImport = document.getElementById('btn-import-wrapper');
-
+            
+            // Atur Visibilitas Tombol Berdasarkan Role
             if (currentUser.role === 'viewer') {
                 btnAdd.classList.add('hidden');
-                btnImport.classList.add('hidden');
-            } else if (currentUser.role === 'inputer') {
+            } else {
                 btnAdd.classList.remove('hidden');
-                btnImport.classList.add('hidden');
-            } else if (currentUser.role === 'superadmin') {
-                btnAdd.classList.remove('hidden');
-                btnImport.classList.remove('hidden');
             }
 
             loadDataFromGSheet();
         }
 
+        // FUNGSI LOAD DATA DARI GOOGLE SHEETS
         function loadDataFromGSheet() {
             if (WEB_APP_URL.includes("MASUKKAN_URL")) {
-                alert("Harap masukkan URL Web App Google Script pada variabel WEB_APP_URL!");
+                alert("Harap masukkan URL Web App Google Script pada baris 17 (WEB_APP_URL)!");
                 return;
             }
 
@@ -297,6 +302,7 @@
                 });
         }
 
+        // FUNGSI RENDER TABEL
         function renderTable(dataToRender = tableData) {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = "";
@@ -314,31 +320,39 @@
                 else if (item.PROGRESS === "PENDING MATERIAL") badgeColor = "bg-orange-100 text-orange-800";
                 else if (item.PROGRESS === "CLOSED") badgeColor = "bg-emerald-100 text-emerald-800";
 
+                // Menyiapkan tombol Edit & Hapus
                 let actionButtons = `-`;
                 if (currentUser.role === 'superadmin' || currentUser.role === 'inputer') {
-                    actionButtons = `
-                        <div class="flex justify-center gap-1.5">
-                            <button onclick="editData('${item.rowId}')" class="bg-blue-50 text-blue-600 hover:bg-blue-100 p-1.5 rounded transition" title="Edit"><i class="fa-solid fa-pen"></i></button>
-                            ${currentUser.role === 'superadmin' ? `<button onclick="deleteData('${item.rowId}')" class="bg-rose-50 text-rose-600 hover:bg-rose-100 p-1.5 rounded transition" title="Hapus"><i class="fa-solid fa-trash"></i></button>` : ''}
-                        </div>
-                    `;
+                    // Tombol Edit tersedia untuk Super Admin dan Inputer
+                    actionButtons = `<div class="flex justify-center gap-1.5">
+                        <button onclick="editData('${item.rowId}')" class="bg-blue-50 text-blue-600 hover:bg-blue-100 p-1.5 rounded transition shadow-sm" title="Edit Data"><i class="fa-solid fa-pen"></i></button>`;
+                    
+                    // Tombol Hapus HANYA untuk Super Admin
+                    if (currentUser.role === 'superadmin') {
+                        actionButtons += `<button onclick="deleteData('${item.rowId}')" class="bg-rose-50 text-rose-600 hover:bg-rose-100 p-1.5 rounded transition shadow-sm" title="Hapus Data"><i class="fa-solid fa-trash"></i></button>`;
+                    }
+                    actionButtons += `</div>`;
                 }
+
+                // Format Tanggal untuk Tampilan Tabel
+                const formattedTglWO = item.TGL_WO ? new Date(item.TGL_WO).toLocaleDateString('id-ID') : '';
+                const formattedSurvey = item.DEADLINE_SURVEY ? new Date(item.DEADLINE_SURVEY).toLocaleDateString('id-ID') : '';
 
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50 border-b border-slate-100";
                 tr.innerHTML = `
                     <td class="p-3 text-slate-500">${index + 1}</td>
-                    <td class="p-3">${item.TGL_WO || ''}</td>
+                    <td class="p-3 whitespace-nowrap">${formattedTglWO}</td>
                     <td class="p-3 font-semibold text-slate-900">${item.TIKET_PERMASALAHAN || ''}</td>
-                    <td class="p-3 max-w-xs truncate">${item.ALAMAT || ''}</td>
+                    <td class="p-3 text-xs leading-relaxed max-w-[200px] truncate" title="${item.ALAMAT || ''}">${item.ALAMAT || ''}</td>
                     <td class="p-3">${item.CP_PELAPOR || ''}</td>
                     <td class="p-3">${item.RAB || ''}</td>
                     <td class="p-3">${item.HSA || ''}</td>
                     <td class="p-3">${item.ID_TELE_HSA || ''}</td>
                     <td class="p-3">${item.ID_IHLD || ''}</td>
-                    <td class="p-3">${item.DEADLINE_SURVEY || ''}</td>
-                    <td class="p-3"><span class="px-2 py-1 rounded-md text-[10px] font-bold ${badgeColor}">${item.PROGRESS || 'OPEN'}</span></td>
-                    <td class="p-3 text-center">${actionButtons}</td>
+                    <td class="p-3 whitespace-nowrap">${formattedSurvey}</td>
+                    <td class="p-3"><span class="px-2 py-1 rounded-md text-[10px] font-bold whitespace-nowrap ${badgeColor}">${item.PROGRESS || 'OPEN'}</span></td>
+                    <td class="p-3 text-center align-middle">${actionButtons}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -354,27 +368,35 @@
             renderTable(filtered);
         }
 
+        // FUNGSI MEMBUKA MODAL TAMBAH DATA
         function openModal() {
             document.getElementById('data-modal').classList.remove('hidden');
             document.getElementById('modal-title').innerText = "Tambah Komplain Baru";
             document.getElementById('data-form').reset();
             document.getElementById('edit-row-id').value = "";
+            document.getElementById('btn-submit-modal').innerText = "Simpan Data Baru";
         }
 
         function closeModal() {
             document.getElementById('data-modal').classList.add('hidden');
         }
 
-        // Fungsi Edit Data (Memasukkan data ke modal berdasarkan rowId)
+        // ==========================================
+        // FUNGSI EDIT DATA (Membuka Modal & Memasukkan Data)
+        // ==========================================
         function editData(rowId) {
+            // 1. Cari data di array berdasarkan rowId
             const item = tableData.find(d => String(d.rowId) === String(rowId));
             if (!item) return;
 
+            // 2. Tampilkan Modal
             document.getElementById('data-modal').classList.remove('hidden');
             document.getElementById('modal-title').innerText = "Edit Data Komplain";
+            document.getElementById('btn-submit-modal').innerText = "Simpan Perubahan";
             
+            // 3. Masukkan data lama ke dalam Input Form
             document.getElementById('edit-row-id').value = item.rowId;
-            document.getElementById('TGL_WO').value = item.TGL_WO || '';
+            document.getElementById('TGL_WO').value = formatDateForInput(item.TGL_WO);
             document.getElementById('TIKET_PERMASALAHAN').value = item.TIKET_PERMASALAHAN || '';
             document.getElementById('ALAMAT').value = item.ALAMAT || '';
             document.getElementById('CP_PELAPOR').value = item.CP_PELAPOR || '';
@@ -382,14 +404,19 @@
             document.getElementById('HSA').value = item.HSA || '';
             document.getElementById('ID_TELE_HSA').value = item.ID_TELE_HSA || '';
             document.getElementById('ID_IHLD').value = item.ID_IHLD || '';
-            document.getElementById('DEADLINE_SURVEY').value = item.DEADLINE_SURVEY || '';
+            document.getElementById('DEADLINE_SURVEY').value = formatDateForInput(item.DEADLINE_SURVEY);
             document.getElementById('PROGRESS').value = item.PROGRESS || 'OPEN';
         }
 
-        // Simpan Data (Tambah atau Update)
+        // ==========================================
+        // FUNGSI SIMPAN & UPDATE DATA KE GOOGLE SHEET
+        // ==========================================
         function saveData(e) {
             e.preventDefault();
+            const btnSubmit = document.getElementById('btn-submit-modal');
             const rowId = document.getElementById('edit-row-id').value;
+            
+            // Jika ada rowId berarti "Update", jika kosong berarti "Tambah (Add)"
             const actionType = rowId ? "updateData" : "addData";
 
             const payload = {
@@ -407,23 +434,31 @@
                 PROGRESS: document.getElementById('PROGRESS').value
             };
 
+            btnSubmit.innerText = "Menyimpan...";
+            btnSubmit.disabled = true;
+
             fetch(WEB_APP_URL, {
                 method: "POST",
                 mode: "no-cors",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             }).then(() => {
-                alert(rowId ? "Data berhasil diperbarui!" : "Data berhasil ditambahkan!");
+                alert(rowId ? "Data berhasil diperbarui!" : "Data baru berhasil ditambahkan!");
                 closeModal();
+                btnSubmit.disabled = false;
+                // Memuat ulang data dari Sheet 1.5 detik kemudian agar Sheet selesai memproses
                 setTimeout(loadDataFromGSheet, 1500);
             }).catch(err => {
-                alert("Gagal menyimpan data.");
+                alert("Gagal menyimpan data. Pastikan Anda online.");
+                btnSubmit.disabled = false;
             });
         }
 
-        // Hapus Data
+        // ==========================================
+        // FUNGSI HAPUS DATA (Khusus Super Admin)
+        // ==========================================
         function deleteData(rowId) {
-            if (!confirm("Apakah Anda yakin ingin menghapus data ini?")) return;
+            if (!confirm("Apakah Anda yakin ingin menghapus data ini secara permanen?")) return;
 
             fetch(WEB_APP_URL, {
                 method: "POST",
@@ -431,32 +466,19 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ action: "deleteData", rowId: rowId })
             }).then(() => {
-                alert("Perintah hapus dikirim!");
+                alert("Data berhasil dihapus!");
                 setTimeout(loadDataFromGSheet, 1500);
-            });
+            }).catch(err => alert("Gagal menghapus data"));
         }
 
+        // FUNGSI EXPORT EXCEL
         function exportExcel() {
-            const worksheet = XLSX.utils.json_to_sheet(tableData);
+            // Bersihkan data sebelum di ekspor agar kolom rowId tidak ikut terekspor
+            const cleanData = tableData.map(({rowId, ...rest}) => rest);
+            const worksheet = XLSX.utils.json_to_sheet(cleanData);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Rekap Komplain");
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Rekap");
             XLSX.writeFile(workbook, "Rekap_Komplain_Utililitas.xlsx");
-        }
-
-        function importExcel(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                const rows = XLSX.utils.sheet_to_json(firstSheet);
-                
-                alert(`Berhasil membaca ${rows.length} baris dari Excel.`);
-            };
-            reader.readAsArrayBuffer(file);
         }
     </script>
 </body>
