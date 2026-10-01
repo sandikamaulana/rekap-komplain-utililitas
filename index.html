@@ -150,7 +150,6 @@
             </div>
             
             <form id="data-form" onsubmit="saveData(event)" class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[75vh] overflow-y-auto">
-                <!-- Input ini disembunyikan, berguna untuk menyimpan ID Baris saat proses Edit -->
                 <input type="hidden" id="edit-row-id">
                 
                 <div>
@@ -212,22 +211,19 @@
         let currentUser = null;
         let tableData = [];
 
-        // Data Akun Role
         const users = {
             superadmin: { pass: 'admin123', name: 'Super Admin', role: 'superadmin' },
             inputer: { pass: 'input123', name: 'Petugas Input', role: 'inputer' },
             viewer: { pass: 'view123', name: 'Viewer / Pimpinan', role: 'viewer' }
         };
 
-        // Format Tanggal (Mencegah error saat memuat tanggal ISO ke input YYYY-MM-DD)
         function formatDateForInput(dateStr) {
             if (!dateStr) return '';
             const d = new Date(dateStr);
-            if(isNaN(d)) return dateStr.split('T')[0]; // Fallback string split
+            if(isNaN(d)) return dateStr.split('T')[0];
             return d.toISOString().split('T')[0];
         }
 
-        // FUNGSI LOGIN
         function handleLogin(e) {
             e.preventDefault();
             const u = document.getElementById('username').value.trim();
@@ -255,7 +251,6 @@
             document.getElementById('login-form').reset();
         }
 
-        // FUNGSI INISIALISASI
         function initApp() {
             document.getElementById('login-page').classList.add('hidden');
             document.getElementById('app-page').classList.remove('hidden');
@@ -264,8 +259,6 @@
             document.getElementById('role-display').innerText = `Role: ${currentUser.role.toUpperCase()}`;
 
             const btnAdd = document.getElementById('btn-add');
-            
-            // Atur Visibilitas Tombol Berdasarkan Role
             if (currentUser.role === 'viewer') {
                 btnAdd.classList.add('hidden');
             } else {
@@ -275,7 +268,6 @@
             loadDataFromGSheet();
         }
 
-        // FUNGSI LOAD DATA DARI GOOGLE SHEETS
         function loadDataFromGSheet() {
             if (WEB_APP_URL.includes("MASUKKAN_URL")) {
                 alert("Harap masukkan URL Web App Google Script pada baris 17 (WEB_APP_URL)!");
@@ -302,7 +294,6 @@
                 });
         }
 
-        // FUNGSI RENDER TABEL
         function renderTable(dataToRender = tableData) {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = "";
@@ -320,21 +311,17 @@
                 else if (item.PROGRESS === "PENDING MATERIAL") badgeColor = "bg-orange-100 text-orange-800";
                 else if (item.PROGRESS === "CLOSED") badgeColor = "bg-emerald-100 text-emerald-800";
 
-                // Menyiapkan tombol Edit & Hapus
                 let actionButtons = `-`;
                 if (currentUser.role === 'superadmin' || currentUser.role === 'inputer') {
-                    // Tombol Edit tersedia untuk Super Admin dan Inputer
                     actionButtons = `<div class="flex justify-center gap-1.5">
                         <button onclick="editData('${item.rowId}')" class="bg-blue-50 text-blue-600 hover:bg-blue-100 p-1.5 rounded transition shadow-sm" title="Edit Data"><i class="fa-solid fa-pen"></i></button>`;
                     
-                    // Tombol Hapus HANYA untuk Super Admin
                     if (currentUser.role === 'superadmin') {
                         actionButtons += `<button onclick="deleteData('${item.rowId}')" class="bg-rose-50 text-rose-600 hover:bg-rose-100 p-1.5 rounded transition shadow-sm" title="Hapus Data"><i class="fa-solid fa-trash"></i></button>`;
                     }
                     actionButtons += `</div>`;
                 }
 
-                // Format Tanggal untuk Tampilan Tabel
                 const formattedTglWO = item.TGL_WO ? new Date(item.TGL_WO).toLocaleDateString('id-ID') : '';
                 const formattedSurvey = item.DEADLINE_SURVEY ? new Date(item.DEADLINE_SURVEY).toLocaleDateString('id-ID') : '';
 
@@ -346,7 +333,7 @@
                     <td class="p-3 font-semibold text-slate-900">${item.TIKET_PERMASALAHAN || ''}</td>
                     <td class="p-3 text-xs leading-relaxed max-w-[200px] truncate" title="${item.ALAMAT || ''}">${item.ALAMAT || ''}</td>
                     <td class="p-3">${item.CP_PELAPOR || ''}</td>
-                    <td class="p-3">${item.RAB || ''}</td>
+                    <td class="p-3 font-medium text-slate-800">${item.RAB || ''}</td>
                     <td class="p-3">${item.HSA || ''}</td>
                     <td class="p-3">${item.ID_TELE_HSA || ''}</td>
                     <td class="p-3">${item.ID_IHLD || ''}</td>
@@ -368,7 +355,6 @@
             renderTable(filtered);
         }
 
-        // FUNGSI MEMBUKA MODAL TAMBAH DATA
         function openModal() {
             document.getElementById('data-modal').classList.remove('hidden');
             document.getElementById('modal-title').innerText = "Tambah Komplain Baru";
@@ -381,20 +367,14 @@
             document.getElementById('data-modal').classList.add('hidden');
         }
 
-        // ==========================================
-        // FUNGSI EDIT DATA (Membuka Modal & Memasukkan Data)
-        // ==========================================
         function editData(rowId) {
-            // 1. Cari data di array berdasarkan rowId
             const item = tableData.find(d => String(d.rowId) === String(rowId));
             if (!item) return;
 
-            // 2. Tampilkan Modal
             document.getElementById('data-modal').classList.remove('hidden');
             document.getElementById('modal-title').innerText = "Edit Data Komplain";
             document.getElementById('btn-submit-modal').innerText = "Simpan Perubahan";
             
-            // 3. Masukkan data lama ke dalam Input Form
             document.getElementById('edit-row-id').value = item.rowId;
             document.getElementById('TGL_WO').value = formatDateForInput(item.TGL_WO);
             document.getElementById('TIKET_PERMASALAHAN').value = item.TIKET_PERMASALAHAN || '';
@@ -408,15 +388,10 @@
             document.getElementById('PROGRESS').value = item.PROGRESS || 'OPEN';
         }
 
-        // ==========================================
-        // FUNGSI SIMPAN & UPDATE DATA KE GOOGLE SHEET
-        // ==========================================
         function saveData(e) {
             e.preventDefault();
             const btnSubmit = document.getElementById('btn-submit-modal');
             const rowId = document.getElementById('edit-row-id').value;
-            
-            // Jika ada rowId berarti "Update", jika kosong berarti "Tambah (Add)"
             const actionType = rowId ? "updateData" : "addData";
 
             const payload = {
@@ -446,17 +421,13 @@
                 alert(rowId ? "Data berhasil diperbarui!" : "Data baru berhasil ditambahkan!");
                 closeModal();
                 btnSubmit.disabled = false;
-                // Memuat ulang data dari Sheet 1.5 detik kemudian agar Sheet selesai memproses
                 setTimeout(loadDataFromGSheet, 1500);
             }).catch(err => {
-                alert("Gagal menyimpan data. Pastikan Anda online.");
+                alert("Gagal menyimpan data.");
                 btnSubmit.disabled = false;
             });
         }
 
-        // ==========================================
-        // FUNGSI HAPUS DATA (Khusus Super Admin)
-        // ==========================================
         function deleteData(rowId) {
             if (!confirm("Apakah Anda yakin ingin menghapus data ini secara permanen?")) return;
 
@@ -471,9 +442,7 @@
             }).catch(err => alert("Gagal menghapus data"));
         }
 
-        // FUNGSI EXPORT EXCEL
         function exportExcel() {
-            // Bersihkan data sebelum di ekspor agar kolom rowId tidak ikut terekspor
             const cleanData = tableData.map(({rowId, ...rest}) => rest);
             const worksheet = XLSX.utils.json_to_sheet(cleanData);
             const workbook = XLSX.utils.book_new();
