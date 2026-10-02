@@ -16,7 +16,7 @@
     <!-- KONFIGURASI WEB APP URL GOOGLE SCRIPT -->
     <script>
         // MASUKKAN URL WEB APP GOOGLE SCRIPT ANDA DI ANTARA TANDA KUTIP DI BAWAH INI:
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzlA3juKKOSbQzSoD2gJlp0Hg8RKJzbv2-5WgDar4XCRJLjxubJd-Q7jBlrgM1QEieavQ/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzofuUIVyjz-y8Vk8k7QwN-E_xTDCdVY2o3bja7mZTrWBHAMKqJ6fTLwmMG63kfL0CusA/exec";
     </script>
 
     <!-- HALAMAN LOGIN -->
@@ -82,7 +82,7 @@
         <!-- Main Content -->
         <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
             
-            <!-- DASHBOARD PEMANTAU KOMPLAIN (STATISTIK) -->
+            <!-- DASHBOARD STATISTIK -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center gap-4">
                     <div class="bg-blue-50 text-blue-600 w-12 h-12 rounded-lg flex items-center justify-center text-lg font-bold">
@@ -165,7 +165,6 @@
                                 <th class="p-3 min-w-[150px]">Alamat</th>
                                 <th class="p-3 whitespace-nowrap">CP</th>
                                 <th class="p-3 whitespace-nowrap">Pelapor</th>
-                                <th class="p-3">RAB</th>
                                 <th class="p-3">HSA</th>
                                 <th class="p-3 whitespace-nowrap">ID Tele HSA</th>
                                 <th class="p-3 whitespace-nowrap">ID IHLD</th>
@@ -176,7 +175,7 @@
                         </thead>
                         <tbody id="table-body" class="divide-y divide-slate-100 text-slate-700">
                             <tr>
-                                <td colspan="13" class="text-center py-6 text-slate-400">Memuat data dari Google Sheets...</td>
+                                <td colspan="12" class="text-center py-6 text-slate-400">Memuat data dari Google Sheets...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -215,10 +214,6 @@
                 <div>
                     <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Pelapor</label>
                     <input type="text" id="PELAPOR" required class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">RAB (Nomor/Nominal)</label>
-                    <input type="text" id="RAB" required class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Contoh: 500000">
                 </div>
                 <div>
                     <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">HSA</label>
@@ -364,7 +359,7 @@
             tbody.innerHTML = "";
 
             if (dataToRender.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="13" class="text-center py-6 text-slate-400">Tidak ada data ditemukan.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="12" class="text-center py-6 text-slate-400">Tidak ada data ditemukan.</td></tr>`;
                 return;
             }
 
@@ -399,7 +394,6 @@
                     <td class="p-3 text-xs leading-relaxed max-w-[200px] truncate" title="${item.ALAMAT || ''}">${item.ALAMAT || ''}</td>
                     <td class="p-3">${item.CP || ''}</td>
                     <td class="p-3 font-medium text-slate-800">${item.PELAPOR || ''}</td>
-                    <td class="p-3 font-medium text-blue-700">${item.RAB || ''}</td>
                     <td class="p-3">${item.HSA || ''}</td>
                     <td class="p-3">${item.ID_TELE_HSA || ''}</td>
                     <td class="p-3">${item.ID_IHLD || ''}</td>
@@ -447,7 +441,6 @@
             document.getElementById('ALAMAT').value = item.ALAMAT || '';
             document.getElementById('CP').value = item.CP || '';
             document.getElementById('PELAPOR').value = item.PELAPOR || '';
-            document.getElementById('RAB').value = item.RAB || '';
             document.getElementById('HSA').value = item.HSA || '';
             document.getElementById('ID_TELE_HSA').value = item.ID_TELE_HSA || '';
             document.getElementById('ID_IHLD').value = item.ID_IHLD || '';
@@ -469,7 +462,6 @@
                 ALAMAT: document.getElementById('ALAMAT').value,
                 CP: document.getElementById('CP').value,
                 PELAPOR: document.getElementById('PELAPOR').value,
-                RAB: document.getElementById('RAB').value,
                 HSA: document.getElementById('HSA').value,
                 ID_TELE_HSA: document.getElementById('ID_TELE_HSA').value,
                 ID_IHLD: document.getElementById('ID_IHLD').value,
